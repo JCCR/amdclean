@@ -81,7 +81,7 @@ defaultOptions = {
   // Allows you to pass an expression that will override shimmed modules return values
   // e.g. { 'backbone': 'window.Backbone' }
   'shimOverrides': {},
-  // Determines how to prefix a module name with when a non-JavaScript compatible character is found 
+  // Determines how to prefix a module name with when a non-JavaScript compatible character is found
   // 'standard' or 'camelCase'
   // 'standard' example: 'utils/example' -> 'utils_example'
   // 'camelCase' example: 'utils/example' -> 'utilsExample'
@@ -604,14 +604,14 @@ convertToFunctionExpression = function convertToFunctionExpression(obj) {
         });
         callbackFunc.body.body = body;
         // Returns an array of all return statements
-        returnStatements = _.where(body, { 'type': 'ReturnStatement' });
-        exportsExpressions = _.where(body, {
+        returnStatements = _.filter(body, { 'type': 'ReturnStatement' });
+        exportsExpressions = _.filter(body, {
           'left': {
             'type': 'Identifier',
             'name': 'exports'
           }
         });
-        moduleExportsExpressions = _.where(body, {
+        moduleExportsExpressions = _.filter(body, {
           'left': {
             'type': 'MemberExpression',
             'object': {
@@ -665,7 +665,7 @@ convertToFunctionExpression = function convertToFunctionExpression(obj) {
     }(), hasReturnStatement = function () {
       var returns = [];
       if (callbackFunc && callbackFunc.body && _.isArray(callbackFunc.body.body)) {
-        returns = _.where(callbackFunc.body.body, { 'type': 'ReturnStatement' });
+        returns = _.filter(callbackFunc.body.body, { 'type': 'ReturnStatement' });
         if (returns.length) {
           return true;
         }
@@ -673,10 +673,10 @@ convertToFunctionExpression = function convertToFunctionExpression(obj) {
       return false;
     }(), originalCallbackFuncParams, hasExportsParam = function () {
       var cbParams = callbackFunc.params || [];
-      return _.where(cbParams, { 'name': 'exports' }).length;
+      return _.filter(cbParams, { 'name': 'exports' }).length;
     }(), hasModuleParam = function () {
       var cbParams = callbackFunc.params || [];
-      return _.where(cbParams, { 'name': 'module' }).length;
+      return _.filter(cbParams, { 'name': 'module' }).length;
     }(), normalizeDependencyNames = {}, dependencyNames = function () {
       var deps = [], currentName;
       _.each(dependencies, function (currentDependency) {
@@ -727,7 +727,7 @@ convertToFunctionExpression = function convertToFunctionExpression(obj) {
               if (node.id && node.id.name && node.init && node.init['arguments'] && node.init['arguments'][0] && node.init['arguments'][0].value) {
                 variableName = node.id.name;
                 expressionName = normalizeModuleName.call(amdclean, utils.normalizeDependencyName(moduleId, node.init['arguments'][0].value, moduleId));
-                if (!_.contains(ignoreModules, expressionName) && variableName === expressionName) {
+                if (!_.includes(ignoreModules, expressionName) && variableName === expressionName) {
                   matchingNames.push({
                     'originalName': expressionName,
                     'newName': findNewParamName(expressionName),
@@ -754,7 +754,7 @@ convertToFunctionExpression = function convertToFunctionExpression(obj) {
       return params;
     }(), callbackFuncParams = function () {
       var deps = [], currentName, cbParams = _.union(callbackFunc.params && callbackFunc.params.length ? callbackFunc.params : !shouldOptimize && dependencyNames && dependencyNames.length ? dependencyNames : [], matchingRequireExpressionParams), mappedParameter = {},
-        // For calculating cbParams we'll optimize by removing not referenced names in the callback parameters. 
+        // For calculating cbParams we'll optimize by removing not referenced names in the callback parameters.
         // If the callback body contains a reference to 'arguments' then we cannot perform this optimization.
         // but at the same time if only inner functions body contains arguments WE DO optimize.
         // What we do is find inner function declarations and then remove their text from the callback body. Then we look for 'arguments' references
@@ -810,7 +810,7 @@ convertToFunctionExpression = function convertToFunctionExpression(obj) {
                   'count': 1
                 }];
             } else {
-              mappedParameter = _.where(amdclean.callbackParameterMap[dependencyNames[iterator].name], { 'name': currentName });
+              mappedParameter = _.filter(amdclean.callbackParameterMap[dependencyNames[iterator].name], { 'name': currentName });
               if (mappedParameter.length) {
                 mappedParameter = mappedParameter[0];
                 mappedParameter.count += 1;
@@ -870,11 +870,11 @@ convertToFunctionExpression = function convertToFunctionExpression(obj) {
       if (utils.isRequireExpression(node)) {
         if (node['arguments'] && node['arguments'][0] && node['arguments'][0].value) {
           normalizedModuleName = normalizeModuleName.call(amdclean, utils.normalizeDependencyName(moduleId, node['arguments'][0].value, moduleId));
-          if (_.contains(ignoreModules, normalizedModuleName)) {
+          if (_.includes(ignoreModules, normalizedModuleName)) {
             return node;
           }
-          if (_.where(matchingRequireExpressionNames, { 'originalName': normalizedModuleName }).length) {
-            newName = _.where(matchingRequireExpressionNames, { 'originalName': normalizedModuleName })[0].newName;
+          if (_.filter(matchingRequireExpressionNames, { 'originalName': normalizedModuleName }).length) {
+            newName = _.filter(matchingRequireExpressionNames, { 'originalName': normalizedModuleName })[0].newName;
           }
           return {
             'type': 'Identifier',
@@ -917,13 +917,13 @@ convertToObjectDeclaration = function (obj, type) {
         modReturnValue = obj.moduleReturnValue;
         callee = modReturnValue.callee;
         params = callee.params;
-        if (params && params.length && _.isArray(params) && _.where(params, { 'name': 'global' })) {
+        if (params && params.length && _.isArray(params) && _.filter(params, { 'name': 'global' })) {
           if (_.isObject(callee.body) && _.isArray(callee.body.body)) {
-            returnStatement = _.where(callee.body.body, { 'type': 'ReturnStatement' })[0];
+            returnStatement = _.filter(callee.body.body, { 'type': 'ReturnStatement' })[0];
             if (_.isObject(returnStatement) && _.isObject(returnStatement.argument) && returnStatement.argument.type === 'FunctionExpression') {
               internalFunctionExpression = returnStatement.argument;
               if (_.isObject(internalFunctionExpression.body) && _.isArray(internalFunctionExpression.body.body)) {
-                nestedReturnStatement = _.where(internalFunctionExpression.body.body, { 'type': 'ReturnStatement' })[0];
+                nestedReturnStatement = _.filter(internalFunctionExpression.body.body, { 'type': 'ReturnStatement' })[0];
                 if (_.isObject(nestedReturnStatement.argument) && _.isObject(nestedReturnStatement.argument.right) && _.isObject(nestedReturnStatement.argument.right.property)) {
                   if (nestedReturnStatement.argument.right.property.name) {
                     modReturnValue = {
@@ -1053,7 +1053,7 @@ convertDefinesAndRequires = function convertDefinesAndRequires(node, parent) {
       } else {
         deps = [];
       }
-      hasExportsParam = _.where(deps, { 'value': 'exports' }).length;
+      hasExportsParam = _.filter(deps, { 'value': 'exports' }).length;
       if (_.isArray(deps) && deps.length) {
         _.each(deps, function (currentDependency) {
           if (dependencyBlacklist[currentDependency.value] && !shouldOptimize) {
@@ -1093,7 +1093,7 @@ convertDefinesAndRequires = function convertDefinesAndRequires(node, parent) {
         amdclean.options.ignoreModules.push(moduleName);
         return node;
       }
-      if (_.contains(options.removeModules, moduleName)) {
+      if (_.includes(options.removeModules, moduleName)) {
         // Remove the current module from the source
         return { 'type': 'EmptyStatement' };
       }
@@ -1110,7 +1110,7 @@ convertDefinesAndRequires = function convertDefinesAndRequires(node, parent) {
       } else if (params.moduleReturnValue && params.moduleReturnValue.type === 'Identifier') {
         type = 'functionExpression';
       }
-      if (_.contains(options.ignoreModules, moduleName)) {
+      if (_.includes(options.ignoreModules, moduleName)) {
         return node;
       } else if (utils.isFunctionExpression(moduleReturnValue) || type === 'functionExpression') {
         return convertToFunctionExpression.call(amdclean, params);
@@ -1137,16 +1137,16 @@ convertDefinesAndRequires = function convertDefinesAndRequires(node, parent) {
     }
   } else {
     // If the node is a function expression that has an exports parameter and does not return anything, return exports
-    if (node.type === 'FunctionExpression' && _.isArray(node.params) && _.where(node.params, {
+    if (node.type === 'FunctionExpression' && _.isArray(node.params) && _.filter(node.params, {
         'type': 'Identifier',
         'name': 'exports'
-      }).length && _.isObject(node.body) && _.isArray(node.body.body) && !_.where(node.body.body, { 'type': 'ReturnStatement' }).length) {
+      }).length && _.isObject(node.body) && _.isArray(node.body.body) && !_.filter(node.body.body, { 'type': 'ReturnStatement' }).length) {
       parentHasFunctionExpressionArgument = function () {
         if (!parent || !parent.arguments) {
           return false;
         }
         if (parent && parent.arguments && parent.arguments.length) {
-          return _.where(parent.arguments, { 'type': 'FunctionExpression' }).length;
+          return _.filter(parent.arguments, { 'type': 'FunctionExpression' }).length;
         }
         return false;
       }();
@@ -1188,7 +1188,7 @@ convertDefinesAndRequires = function convertDefinesAndRequires(node, parent) {
           'loc': defaultLOC
         });
       }
-      // Adds the return statement, 'return exports', to the end of the function expression 
+      // Adds the return statement, 'return exports', to the end of the function expression
       node.body.body.push({
         'type': 'ReturnStatement',
         'argument': {
@@ -1454,7 +1454,7 @@ clean = function clean() {
   }, {})), hoistedCallbackParameters);
   // Creates variable declarations for each AMD module/callback parameter that needs to be hoisted
   _.each(hoistedVariables, function (moduleValue, moduleName) {
-    if (!_.contains(options.ignoreModules, moduleName)) {
+    if (!_.includes(options.ignoreModules, moduleName)) {
       var _initValue = amdclean.exportsModules[moduleName] !== true ? null : {
         type: 'ObjectExpression',
         properties: []

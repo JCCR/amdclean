@@ -187,6 +187,96 @@ define([
       }
     },
 
+    // isCommonJSConditional
+    // ----------------
+    // Returns if the current AST node is an if statement CommonJS check
+    // e.g. if(typeof exports === 'function') {}
+    'isCommonJSConditional': function(node) {
+      if (!Utils.isIfStatement(node)) {
+        return false;
+      }
+
+      var matchObjects = [
+        {
+          'left': {
+            'operator': 'typeof',
+            'argument': {
+              'type': 'Identifier',
+              'name': 'exports'
+            }
+          },
+          'operator': '!==',
+          'right': {
+            'type': 'Literal',
+            'value': 'undefined'
+          }
+        },
+        {
+          'left': {
+            'operator': 'typeof',
+            'argument': {
+              'type': 'Identifier',
+              'name': 'exports'
+            }
+          },
+          'operator': '===',
+          'right': {
+            'type': 'Literal',
+            'value': 'object'
+          }
+        },
+        {
+          'left': {
+            'operator': 'typeof',
+            'argument': {
+              'type': 'Identifier',
+              'name': 'module'
+            }
+          },
+          'operator': '!==',
+          'right': {
+            'type': 'Literal',
+            'value': 'undefined'
+          }
+        },
+        {
+          'left': {
+            'operator': 'typeof',
+            'argument': {
+              'type': 'Identifier',
+              'name': 'module'
+            }
+          },
+          'operator': '===',
+          'right': {
+            'type': 'Literal',
+            'value': 'object'
+          }
+        }
+      ];
+
+
+      try {
+        return _.find(matchObjects, function (matchObject) {
+          var reversedMatchObject = {
+            'left': matchObject.right,
+            'operator': matchObject.operator,
+            'right': matchObject.left
+          };
+          return (_.find(node.test, matchObject) ||
+            _.find([node.test], matchObject) ||
+            _.find(node.test, reversedMatchObject) ||
+            _.find([node.test], reversedMatchObject) ||
+            _.find(node.test.left || {}, matchObject) ||
+            _.find([node.test.left || {}], matchObject) ||
+            _.find(node.test.left || {}, reversedMatchObject) ||
+            _.find([node.test.left || {}], reversedMatchObject));
+        });
+      } catch (e) {
+        return false;
+      }
+    },
+
     // returnExpressionIdentifier
     // --------------------------
     // Returns a single identifier

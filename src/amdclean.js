@@ -1,6 +1,6 @@
-/*! amdclean - v2.7.0 - 2017-10-09
+/*! amdclean - v2.7.0 - 2018-01-30
 * http://gregfranko.com/amdclean
-* Copyright (c) 2017 Greg Franko */
+* Copyright (c) 2018 Greg Franko */
 
 
 /*The MIT License (MIT)
@@ -74,6 +74,9 @@ defaultOptions = {
   // Determines if conditional AMD checks are transformed
   // e.g. if(typeof define == 'function') {} -> if(true) {}
   'transformAMDChecks': true,
+  // Determines if conditional CommonJS checks are transformed
+  // e.g. if(typeof exports === "object" && typeof module !== "undefined") {} -> if(false) {}
+  'transformCommonJSChecks': true,
   // Determines if a named or anonymous AMD module will be created inside of your conditional AMD check
   // Note: This is only applicable to JavaScript libraries, do not change this for web apps
   // If set to true: e.g. define('example', [], function() {}) -> define([], function() {})
@@ -255,6 +258,85 @@ utils = function () {
         };
       try {
         return _.find(node.test, matchObject) || _.find([node.test], matchObject) || _.find(node.test, reversedMatchObject) || _.find([node.test], reversedMatchObject) || _.find(node.test.left || {}, matchObject) || _.find([node.test.left || {}], matchObject) || _.find(node.test.left || {}, reversedMatchObject) || _.find([node.test.left || {}], reversedMatchObject);
+      } catch (e) {
+        return false;
+      }
+    },
+    // isCommonJSConditional
+    // ----------------
+    // Returns if the current AST node is an if statement CommonJS check
+    // e.g. if(typeof exports === 'function') {}
+    'isCommonJSConditional': function (node) {
+      if (!Utils.isIfStatement(node)) {
+        return false;
+      }
+      var matchObjects = [
+        {
+          'left': {
+            'operator': 'typeof',
+            'argument': {
+              'type': 'Identifier',
+              'name': 'exports'
+            }
+          },
+          'operator': '!==',
+          'right': {
+            'type': 'Literal',
+            'value': 'undefined'
+          }
+        },
+        {
+          'left': {
+            'operator': 'typeof',
+            'argument': {
+              'type': 'Identifier',
+              'name': 'exports'
+            }
+          },
+          'operator': '===',
+          'right': {
+            'type': 'Literal',
+            'value': 'object'
+          }
+        },
+        {
+          'left': {
+            'operator': 'typeof',
+            'argument': {
+              'type': 'Identifier',
+              'name': 'module'
+            }
+          },
+          'operator': '!==',
+          'right': {
+            'type': 'Literal',
+            'value': 'undefined'
+          }
+        },
+        {
+          'left': {
+            'operator': 'typeof',
+            'argument': {
+              'type': 'Identifier',
+              'name': 'module'
+            }
+          },
+          'operator': '===',
+          'right': {
+            'type': 'Literal',
+            'value': 'object'
+          }
+        }
+      ];
+      try {
+        return _.find(matchObjects, function (matchObject) {
+          var reversedMatchObject = {
+            'left': matchObject.right,
+            'operator': matchObject.operator,
+            'right': matchObject.left
+          };
+          return _.find(node.test, matchObject) || _.find([node.test], matchObject) || _.find(node.test, reversedMatchObject) || _.find([node.test], reversedMatchObject) || _.find(node.test.left || {}, matchObject) || _.find([node.test.left || {}], matchObject) || _.find(node.test.left || {}, reversedMatchObject) || _.find([node.test.left || {}], reversedMatchObject);
+        });
       } catch (e) {
         return false;
       }
@@ -1037,6 +1119,15 @@ convertDefinesAndRequires = function convertDefinesAndRequires(node, parent) {
         'range': range,
         'loc': loc
       };
+      if (options.transformCommonJSChecks === true && utils.isCommonJSConditional(parent)) {
+        parent.test = {
+          'type': 'Literal',
+          'value': false,
+          'raw': 'false',
+          'range': parent.range,
+          'loc': parent.loc
+        };
+      }
       return node;
     }
   }
@@ -1188,7 +1279,7 @@ convertDefinesAndRequires = function convertDefinesAndRequires(node, parent) {
           'loc': defaultLOC
         });
       }
-      // Adds the return statement, 'return exports', to the end of the function expression 
+      // Adds the return statement, 'return exports', to the end of the function expression
       node.body.body.push({
         'type': 'ReturnStatement',
         'argument': {

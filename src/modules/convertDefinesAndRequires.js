@@ -87,6 +87,16 @@ define([
           'loc': loc
         };
 
+        if (options.transformCommonJSChecks === true && utils.isCommonJSConditional(parent)) {
+          parent.test = {
+            'type': 'Literal',
+            'value': false,
+            'raw': 'false',
+            'range': parent.range,
+            'loc': parent.loc
+          }
+        }
+
         return node;
       }
 
@@ -285,7 +295,7 @@ define([
           });
         }
 
-        // Adds the return statement, 'return exports', to the end of the function expression 
+        // Adds the return statement, 'return exports', to the end of the function expression
         node.body.body.push({
           'type': 'ReturnStatement',
           'argument': {

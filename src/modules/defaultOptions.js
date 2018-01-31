@@ -45,6 +45,9 @@ define({
   // Determines if conditional AMD checks are transformed
   // e.g. if(typeof define == 'function') {} -> if(true) {}
   'transformAMDChecks': true,
+  // Determines if conditional CommonJS checks are transformed
+  // e.g. if(typeof exports === "object" && typeof module !== "undefined") {} -> if(false) {}
+  'transformCommonJSChecks': true,
   // Determines if a named or anonymous AMD module will be created inside of your conditional AMD check
   // Note: This is only applicable to JavaScript libraries, do not change this for web apps
   // If set to true: e.g. define('example', [], function() {}) -> define([], function() {})
