@@ -114,7 +114,7 @@ define([
           deps = [];
         }
 
-        hasExportsParam = _.where(deps, {
+        hasExportsParam = _.filter(deps, {
           'value': 'exports'
         }).length;
 
@@ -162,7 +162,7 @@ define([
           return node;
         }
 
-        if (_.contains(options.removeModules, moduleName)) {
+        if (_.includes(options.removeModules, moduleName)) {
 
           // Remove the current module from the source
           return {
@@ -186,7 +186,7 @@ define([
           type = 'functionExpression';
         }
 
-        if (_.contains(options.ignoreModules, moduleName)) {
+        if (_.includes(options.ignoreModules, moduleName)) {
           return node;
         } else if (utils.isFunctionExpression(moduleReturnValue) || type === 'functionExpression') {
           return convertToFunctionExpression.call(amdclean, params);
@@ -220,13 +220,13 @@ define([
       // If the node is a function expression that has an exports parameter and does not return anything, return exports
       if (node.type === 'FunctionExpression' &&
         _.isArray(node.params) &&
-        _.where(node.params, {
+        _.filter(node.params, {
           'type': 'Identifier',
           'name': 'exports'
         }).length &&
         _.isObject(node.body) &&
         _.isArray(node.body.body) &&
-        !_.where(node.body.body, {
+        !_.filter(node.body.body, {
           'type': 'ReturnStatement'
         }).length) {
 
@@ -237,7 +237,7 @@ define([
           }
 
           if (parent && parent.arguments && parent.arguments.length) {
-            return _.where(parent.arguments, {
+            return _.filter(parent.arguments, {
               'type': 'FunctionExpression'
             }).length;
           }
