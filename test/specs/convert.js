@@ -792,6 +792,26 @@ describe('amdclean specs', function() {
         expect(cleanedCode).toBe(standardJavaScript);
       });
 
+      it('should correctly convert libraries with simple conditional AMD checks, when the CommonJS check is first', function() {
+        var AMDcode = "(function (root, factory) {" +
+                "'use strict';" +
+                "if (typeof exports !== 'undefined') {" +
+                "factory(exports);" +
+                "} else if (typeof define === 'function') {" +
+                "define('esprima', ['exports'], factory);" +
+                "} else {" +
+                "factory((root.esprima = {}));" +
+                "}" +
+                "}(this, function (exports) {" +
+                "var test = true;" +
+                "}));",
+            cleanedCode = amdclean.clean(AMDcode, defaultOptions),
+            standardJavaScript = "var esprima;(function(root,factory){'use strict';if(typeof exports!=='undefined'){factory(exports);}else if(true){esprima=function (exports){return typeof factory==='function'?factory(exports):factory;}({});}else{factory(root.esprima={});}}(this,function(exports){exports=exports||{};var test=true;return exports;}));";
+
+        expect(cleanedCode).toBe(standardJavaScript);
+      });
+
+
       it('should correctly convert libraries with simple conditional AMD checks (ternary operator case)', function(){
         var AMDcode = "(function (root, factory) {"+
             "'use strict';"+
@@ -817,6 +837,34 @@ describe('amdclean specs', function() {
           "}))",
           cleanedCode = amdclean.clean(AMDcode, defaultOptions),
           standardJavaScript = "(function(global,factory){typeof exports==='object'&&typeof module!=='undefined'?module.exports=factory():true?define(factory):global.Vue=factory();}(this,function(){return true;}));";
+
+        expect(cleanedCode).toBe(standardJavaScript);
+      });
+
+      it('should correctly convert libraries with simple conditional AMD checks (ternary operator case 3)', function(){
+        var AMDcode = "(function(global, factory) {"+
+                "typeof module === 'object' && module.exports ? module.exports = factory() :"+
+                "typeof define === 'function' && define.amd ? define(factory) :"+
+                "(global.Vue = factory());"+
+                "})(this, (function() {"+
+                "return true;"+
+                "}))",
+            cleanedCode = amdclean.clean(AMDcode, defaultOptions),
+            standardJavaScript = "(function(global,factory){typeof module==='object'&&module.exports?module.exports=factory():true?define(factory):global.Vue=factory();}(this,function(){return true;}));";
+
+        expect(cleanedCode).toBe(standardJavaScript);
+      });
+
+      it('should correctly convert libraries with simple conditional AMD checks (ternary operator case 4)', function(){
+        var AMDcode = "(function(global, factory) {"+
+                "typeof module === 'object' && typeof module.exports === 'object' ? module.exports = factory() :"+
+                "typeof define === 'function' && define.amd ? define(factory) :"+
+                "(global.Vue = factory());"+
+                "})(this, (function() {"+
+                "return true;"+
+                "}))",
+            cleanedCode = amdclean.clean(AMDcode, defaultOptions),
+            standardJavaScript = "(function(global,factory){typeof module==='object'&&typeof module.exports==='object'?module.exports=factory():true?define(factory):global.Vue=factory();}(this,function(){return true;}));";
 
         expect(cleanedCode).toBe(standardJavaScript);
       });
