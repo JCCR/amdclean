@@ -1,4 +1,4 @@
-/*! amdclean - v2.7.0 - 2018-01-30
+/*! amdclean - v2.7.0 - 2018-02-02
 * http://gregfranko.com/amdclean
 * Copyright (c) 2018 Greg Franko */
 
@@ -128,6 +128,9 @@ defaultValues = {
   // dependencyBlacklist
   // -------------------
   // Variable names that are not allowed as dependencies to functions
+  //
+  // RequireJS special magic modules
+  // https://github.com/requirejs/requirejs/wiki/differences-between-the-simplified-commonjs-wrapper-and-standard-amd-define#magic-modules
   'dependencyBlacklist': {
     'require': 'remove',
     'exports': true,
@@ -654,6 +657,9 @@ convertToIIFEDeclaration = function convertToIIFEDeclaration(obj) {
 normalizeModuleName = function normalizeModuleName(name, moduleId) {
   var amdclean = this, options = amdclean.options, prefixMode = options.prefixMode, prefixTransform = options.prefixTransform, dependencyBlacklist = defaultValues.dependencyBlacklist, prefixTransformValue, preNormalized, postNormalized;
   name = name || '';
+  if (dependencyBlacklist[name]) {
+    return name;
+  }
   if (name === '{}') {
     if (dependencyBlacklist[name] === 'remove') {
       return '';

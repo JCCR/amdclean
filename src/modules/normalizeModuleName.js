@@ -21,6 +21,10 @@ define([
 
     name = name || '';
 
+    if (dependencyBlacklist[name]) {
+      return name;
+    }
+
     if (name === '{}') {
       if (dependencyBlacklist[name] === 'remove') {
         return '';

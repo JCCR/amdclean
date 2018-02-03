@@ -6,6 +6,9 @@ define({
   // dependencyBlacklist
   // -------------------
   // Variable names that are not allowed as dependencies to functions
+  //
+  // RequireJS special magic modules
+  // https://github.com/requirejs/requirejs/wiki/differences-between-the-simplified-commonjs-wrapper-and-standard-amd-define#magic-modules
   'dependencyBlacklist': {
     'require': 'remove',
     'exports': true,

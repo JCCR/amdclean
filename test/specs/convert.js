@@ -460,6 +460,30 @@ describe('amdclean specs', function() {
           expect(cleanedCode).toBe(standardJavaScript);
         });
 
+        it('should not transform special module names when using the prefixTransform option', function() {
+          var AMDcode =
+              "(function(global, factory) {" +
+              "  if (typeof define === 'function' && define.amd) {" +
+              "    define('testModule', ['exports'], factory);" +
+              "  }" +
+              "}(this, (function(exports) {" +
+              "  exports.testMember = 'test';" +
+              "})));",
+            options = _.merge(_.cloneDeep(defaultOptions), {
+              'prefixTransform': function(moduleName, moduleId) {
+                return '_' + moduleName;
+              },
+              'wrap': {
+                start: '',
+                end: ''
+              }
+            }),
+            cleanedCode = amdclean.clean(AMDcode, options),
+            standardJavaScript = "var _testModule;(function(global,factory){if(true){_testModule=function (exports){return typeof factory==='function'?factory(exports):factory;}({});}}(this,function(exports){exports=exports||{};exports.testMember='test';return exports;}));";
+
+          expect(cleanedCode).toBe(standardJavaScript);
+        });
+
         it('should correctly transform each module variable declaration name when using the IIFEVariableNameTransform option', function() {
           var AMDcode = "define('A', ['B', 'C'], function(B, C){return 2; }); ",
             options = _.merge(_.cloneDeep(defaultOptions), {
